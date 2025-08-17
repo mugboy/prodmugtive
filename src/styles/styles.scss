@@ -1,0 +1,18 @@
+$color-mode-type: data;
+@import "bootstrap/scss/bootstrap";
+@import "bootstrap-icons/font/bootstrap-icons";
+
+.google-signin-container div,
+.google-signin-container div > div,
+.google-signin-container div > div > div {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0.5rem !important;
+}
+
+.center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+}
