@@ -1,11 +1,57 @@
 import { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 
+function parseJwt(token?: string) {
+  if (!token) {
+    console.error("Invalid token passed to parseJwt:", token);
+    return null;
+  }
+  const base64Url = token.split(".")[1];
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  let jsonPayload = "";
+
+  try {
+    jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("") // <-- This split
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
+  } catch (e) {
+    console.error("Error decoding JWT payload:", e);
+    return null;
+  }
+
+  return JSON.parse(jsonPayload);
+}
 // Extend the global window object
 declare global {
   interface Window {
     google?: any;
+    login_info?: LoginInfo;
   }
+
+  interface LoginInfo {
+    // typeof login credentials for compiler help
+
+    aud: string;
+    azp: string;
+    email: string;
+    email_verified: boolean;
+    exp: number;
+    family_name: string;
+    given_name: string;
+    iat: number;
+    iss: string;
+    jti: string;
+    name: string;
+    nbf: number;
+    picture: string;
+    sub: string;
+  }
+  
 }
 
 export default function Home() {
@@ -53,24 +99,27 @@ export default function Home() {
   }, [googleReady]);
 
   function handleCredentialResponse(response: any) {
-    let parseJwt = function(token: string) {
-      const base64Url = token.split('.')[1]; // get payload part
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
-    }
+    console.log("response.credential:", response.credential);
+    window.login_info = parseJwt(response.credential);
+    console.log("handleCredentialResponse called!", response);
 
-    console.log(parseJwt(response.credential));
+    const changeMeNow = document.getElementById("change-me-now");
+    if (changeMeNow) {
+      changeMeNow.innerHTML = `
+      <div align="center">
+        <h1>An Apology</h1>
+        <p>I'm sorry ${window.login_info?.given_name}, but you're too mischevous for my liking.<br>
+        So I can't do anything about it. :(</p>
+
+        <footer>404 too mischevous</footer>
+      </div>
+    `
+    }
 
   }
 
   return (
-    <>
+    <div id="change-me-now">
       <Head>
         <title>Sign in to Prodmugtive</title>
       </Head>
@@ -86,6 +135,6 @@ export default function Home() {
           <div ref={buttonDivRef} id="googleSignInDiv" />
         </div>
       </div>
-    </>
+    </div>
   );
 }
