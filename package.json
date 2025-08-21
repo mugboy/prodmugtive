@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "vercel"
+    "deploy": "vercel --prod"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
